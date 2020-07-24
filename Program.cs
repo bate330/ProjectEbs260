@@ -38,15 +38,30 @@ namespace ConsoleApp12
 
         public static Socket Connect(string host, int port)
         {
-            Socket s = new Socket(AddressFamily.InterNetwork,
-                SocketType.Stream,
-                ProtocolType.Tcp);
+            try
+            {
+                Socket s = new Socket(AddressFamily.InterNetwork,
+               SocketType.Stream,
+               ProtocolType.Tcp);
+                Console.WriteLine("Establishing Connection to {0}",
+                    host);
+                var result = s.BeginConnect(host, port, null, null);
+                var success = result.AsyncWaitHandle.WaitOne(TimeSpan.FromSeconds(1));
+                if (!success)
+                {
+                    throw new Exception("Failed to connect.");
+                }
+                return s;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return null;
+            }
 
-            Console.WriteLine("Establishing Connection to {0}",
-                host);
-            s.Connect(host, port);
-            Console.WriteLine("Connection established");
-            return s;
+
+
+
         }
 
         public static void SendReceiveTest1(Socket server, string SendText)
@@ -59,9 +74,9 @@ namespace ConsoleApp12
                 int i = server.Send(msg);
                 Console.WriteLine("Sent {0} bytes.", i);
             }
-            catch (SocketException e)
+            catch (Exception ex)
             {
-                Console.WriteLine("{0} Error code: {1}.", e.Message, e.ErrorCode);  
+                Console.WriteLine(ex.Message);  
             }
         }
     }
